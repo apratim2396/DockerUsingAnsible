@@ -1,0 +1,53 @@
+- hosts: all
+  gather_facts: no
+
+  tasks:
+  - name: "Repo"
+    yum_repository:
+            name: "Docker"
+            description: "Docker Repo"
+            baseurl: "https://download.docker.com/linux/centos/7/x86_64/stable"
+            gpgcheck: no
+
+  - name: "Docker package installation"
+    command: "yum install docker-ce --nobest -y"
+    
+
+  - name: "starting docker"
+    service:
+            name: "docker"
+            state: started
+            enabled: yes
+  - name: "installing docker sdk for python"
+    command: "pip3 install docker"
+
+  - name: "creating the folder"
+    file:
+            path: "/newfile"
+            state: directory
+
+  - name: "Copying file"
+    copy:
+            src: web.html
+            dest: "/newfile/"
+
+  - name: "Pulling httpd server image from docker hub"
+    service:
+            name: httpd
+            state: pull
+
+  - name: "Stopping firewall"
+    command: "systemctl stop firewalld"
+
+  - name: "restarting docker"
+    command: systemctl restart docker
+
+  - name: "launching the docker conatainer and exposing it"
+    docker_container:
+            name: "webserver"
+            image: "httpd"
+            state: started
+            exposed_ports:
+                    - "80"
+            volumes:
+                    - "/var/www/html:/usr/local/apache2/htdocs/"
